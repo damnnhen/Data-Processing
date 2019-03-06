@@ -1,0 +1,139 @@
+<!--
+Name: Daniel Hendriks
+Studentnumber: 11419628
+In this exercise I visualize the number of olympic speed skating medals, won by the Netherlands
+I unfortunately had to make some manual adjustments to at least be able to make the visualizations. This file with manual adjustments is called "df_manual.json"
+This data is gathered from Kaggle: https://www.kaggle.com/heesoo37/120-years-of-olympic-history-athletes-and-results/kernels
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Week 3 of Data Processing</title>
+</head>
+
+<body>
+
+<h1>Dutch Olympic Speed Skating medals over time </h1>
+<p>Student number: 11419628</p>
+<p>Student: Daniel Hendriks</p>
+<p>Source: https://www.kaggle.com/heesoo37/120-years-of-olympic-history-athletes-and-results/kernels </p>
+<p></p>
+
+<canvas id="canvas" width="650" height="550"></canvas>
+
+<script>
+
+// Set variables 
+var yValues = [];
+var xValues = [];
+var fileName = "df_manual.json";
+var txtFile = new XMLHttpRequest();
+
+// determine coordinates with predefined formula 
+function createTransform(domain, range){
+  var domain_min = domain[0]
+  var domain_max = domain[1]
+  var range_min = range[0]
+  var range_max = range[1]
+  // formulas to calculate the alpha and the beta
+  var alpha = (range_max - range_min) / (domain_max - domain_min)
+  var beta = range_max - alpha * domain_max
+  // returns the function for the linear transformation (y= a * x + b)
+  return function(x){
+    return alpha * x + beta;
+  }
+}
+
+// set main actions
+txtFile.onreadystatechange = function() {
+  if (txtFile.readyState === 4 && txtFile.status == 200) {
+    var json = JSON.parse(txtFile.responseText);
+    
+    // store the year values as x-values
+    Object.keys(json).forEach(function(element) {
+      xValues.push(json[element]["Year"]);
+    });
+
+    // store the number values as y-values
+    Object.keys(json).forEach(function(element) {
+      yValues.push(json[element]["Medal"]);
+    });
+
+    // set the domain for x and y 
+    xDomain = []
+    yDomain = []
+
+    // push the min and max in the domains
+    xDomain.push(Math.min(...xValues));
+    xDomain.push(Math.max(...xValues));
+
+    yDomain.push(Math.min(...yValues));
+    // add little extra headspace
+    yDomain.push((Math.max(...yValues))+0.2*(Math.max(...yValues)));
+
+    var xAxis = createTransform(xDomain, [140, 680]);
+    var yAxis = createTransform(yDomain, [400, 0]);
+    //Calculate x and y coordinates based on values
+    var yCoors = [];
+    var xCoors = [];
+
+    var observations = xValues.length;
+    // because of gaps in xvalues, determine xrange self
+    for (var i = 0; i < observations ;i++){
+      xCoors.push(xAxis(Math.min(...xValues)+(i*4)));
+      yCoors.push(yAxis(yValues[i]));
+    }
+    // Draw line chart
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Draw format line chart
+    ctx.font = '10px serif';
+    ctx.textAlign = "center";
+    ctx.lineWidth = 1;
+    ctx.strokeText('Number of Dutch Speed Skating medals on the Olympics', 400, 40);
+    ctx.strokeText('Number of medals', 80, 100);
+    ctx.strokeText('Years', 400, 470);
+    ctx.beginPath();
+    ctx.moveTo(140, 50);
+    ctx.lineTo(140, 430);
+    ctx.lineTo(630, 430);
+    ctx.stroke();
+
+    // Draw lines 
+    ctx.beginPath();
+    ctx.moveTo(xCoors[0], yCoors[0]);
+    for (var j = 0; j < observations; j++){
+      ctx.lineTo(xCoors[j], yCoors[j]);
+      ctx.strokeText(xValues[j], xCoors[j], 450);
+    }
+    ctx.stroke();
+
+    ctx.translate(100,20)
+    // for every determined y axis point, set line 
+    for (var k = 0; k < 35; k += 5){
+      var yAx = yAxis(k);
+      ctx.strokeText(k, 30, yAx);
+      if (k!==0){
+        // determine pattern line dash
+        ctx.setLineDash([6, 10]);
+        ctx.beginPath();
+        // set start of line 
+        ctx.moveTo(40, yAx);
+        // set end of line
+        ctx.lineTo(535, yAx);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+  }
+}
+
+txtFile.open("GET", fileName);
+txtFile.send();
+
+</script>
+
+</body>
+</html>
