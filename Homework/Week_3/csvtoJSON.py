@@ -3,7 +3,7 @@
 # Student number: 11419628
 """
 This script converts a CSV file to a JSON file
-The data will be used to show the percentage of speed skating medals in total Dutch medals on winter olympics over time
+The data will be used to show the trend of Dutch speed skating medals 
 """
 
 #import libraries
